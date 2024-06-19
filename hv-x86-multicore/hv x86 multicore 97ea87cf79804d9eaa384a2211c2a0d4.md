@@ -74,6 +74,32 @@ vmx 收到 icr 的写入
 
 ![Untitled](hv%20x86%20multicore%2097ea87cf79804d9eaa384a2211c2a0d4/Untitled%209.png)
 
+6.20 
+
+双核情况下 运行 apps/helloworld 没有 问题
+
+![Untitled](hv%20x86%20multicore%2097ea87cf79804d9eaa384a2211c2a0d4/Untitled%2010.png)
+
+运行 apps/task/parallel 只要修改 NUM_DATA 和 NUM_TASKS  将其减小一点 双核就可以运行
+
+![Untitled](hv%20x86%20multicore%2097ea87cf79804d9eaa384a2211c2a0d4/Untitled%2011.png)
+
+在原来的设置下会分配超过 16M 内存会触发 ept violation ，之前试过将guest mem 设置为 128M 但是失败了会卡住， 感觉是qemu 直接加载 地址设置的问题。
+
+使用的方法很简单 就是 注册一个软件中断  通过 virt_ipi_handler 来处理 消息，ap 收到 start 就 run
+
+但是 超过双核 就会出现问题
+
+![Untitled](hv%20x86%20multicore%2097ea87cf79804d9eaa384a2211c2a0d4/Untitled%2012.png)
+
+这个 rip 地址在汇编里根本就不是可执行的 很奇怪， 感觉是 cpuid 出了问题 
+
+现在才发现有 boot_arceos 分支 准备合并它
+
 2. 【进阶】基于【基础】的实现，令一个物理CPU与多个VCpu绑定，其上仍然只需运行单个客户机。一个物理CPU与多个VCpu绑定会涉及到调度算法以及上下文的切换，可以参考现有常用的调度算法（CFS、FIFO、RR）进行实现，或对其进行改进。例如：2个物理CPU，每个CPU分别对应2个VCpu，共4个VCpu。单个客户机使用这4个VCpu。
 
-参考 sdm 卷三 31？
+参考 sdm 卷三 31？ 
+
+我参考了 intel arcn 的实现思路 但是 还在设计 数据结构 C 和 Rust 还是有很多不同。。。。
+
+太菜了 感觉来不及了 但是挺有收获的 😂
